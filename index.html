@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>仮名</title>
+
+  <meta name="theme-color" content="#F5F0E8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151311" media="(prefers-color-scheme: dark)">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Outfit:wght@300;400;500&family=Shippori+Mincho+B1:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #F5F0E8;
+      --bg-card: #FDFBF7;
+      --text: #2C2825;
+      --text-dim: #9A9088;
+      --accent: #C4653A;
+      --accent-soft: rgba(196, 101, 58, 0.09);
+      --border: rgba(44, 40, 37, 0.07);
+      --shadow:
+        0 1px 2px rgba(44, 40, 37, 0.04),
+        0 4px 16px rgba(44, 40, 37, 0.05),
+        0 12px 40px rgba(44, 40, 37, 0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #151311;
+        --bg-card: #1F1D1A;
+        --text: #E8E0D4;
+        --text-dim: #706860;
+        --accent: #D4A76A;
+        --accent-soft: rgba(212, 167, 106, 0.1);
+        --border: rgba(255, 255, 255, 0.05);
+        --shadow:
+          0 1px 2px rgba(0, 0, 0, 0.2),
+          0 4px 16px rgba(0, 0, 0, 0.15),
+          0 12px 40px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #151311;
+      --bg-card: #1F1D1A;
+      --text: #E8E0D4;
+      --text-dim: #706860;
+      --accent: #D4A76A;
+      --accent-soft: rgba(212, 167, 106, 0.1);
+      --border: rgba(255, 255, 255, 0.05);
+      --shadow:
+        0 1px 2px rgba(0, 0, 0, 0.2),
+        0 4px 16px rgba(0, 0, 0, 0.15),
+        0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    html, body {
+      height: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.4s ease, color 0.4s ease;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px 24px env(safe-area-inset-bottom, 20px);
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 300;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      letter-spacing: 0.01em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .counter {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      letter-spacing: 0.03em;
+    }
+
+    .theme-toggle {
+      appearance: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.3s;
+      border-radius: 50%;
+    }
+
+    .theme-toggle:hover { color: var(--text); }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      min-height: 0;
+    }
+
+    /* ── Card ── */
+    .card-container {
+      width: 100%;
+      max-width: 360px;
+      height: 55vh;
+      max-height: 440px;
+      min-height: 280px;
+      perspective: 1200px;
+      cursor: pointer;
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .card-container.out {
+      opacity: 0;
+      transform: scale(0.97);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 32px 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    /* subtle paper grain */
+    .card-face::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+    }
+
+    .category {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 5px 14px;
+      border-radius: 100px;
+    }
+
+    .word {
+      font-family: 'Shippori Mincho B1', serif;
+      font-weight: 500;
+      font-size: clamp(4rem, 14vw, 6rem);
+      color: var(--text);
+      line-height: 1.1;
+      transition: color 0.4s ease;
+    }
+
+    .meaning {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 300;
+      font-style: italic;
+      font-size: clamp(2rem, 7vw, 3rem);
+      line-height: 1.1;
+      color: var(--text);
+      text-align: center;
+      transition: color 0.4s ease;
+    }
+
+    .back-word {
+      font-family: 'Shippori Mincho B1', serif;
+      font-weight: 400;
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      margin-top: -8px;
+    }
+
+    .divider {
+      width: 32px;
+      height: 1px;
+      background: var(--border);
+      margin: -4px 0;
+    }
+
+    .hint {
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+      opacity: 0.7;
+      position: absolute;
+      bottom: 24px;
+    }
+
+    /* ── Next Button ── */
+    .next-btn {
+      appearance: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--accent);
+      padding: 12px 28px;
+      letter-spacing: 0.02em;
+      transition: opacity 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+
+    .next-btn:hover { opacity: 0.7; }
+    .next-btn:active { transform: scale(0.97); }
+
+    .next-btn .arrow {
+      display: inline-block;
+      transition: transform 0.2s ease;
+      font-size: 1rem;
+    }
+
+    .next-btn:hover .arrow { transform: translateX(3px); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding-top: 12px;
+      flex-shrink: 0;
+    }
+
+    .shortcuts {
+      font-size: 0.68rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      opacity: 0.5;
+    }
+
+    /* hide keyboard shortcuts on touch devices */
+    @media (hover: none) {
+      .shortcuts { display: none; }
+      footer { padding-top: 0; }
+    }
+
+    /* ── Initial load ── */
+    .app {
+      animation: fadeIn 0.6s ease both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+    }
+
+    /* ── Focus styles ── */
+    .next-btn:focus-visible,
+    .theme-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .card-container:focus-visible .card-face {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <span class="title">kana</span>
+      <div class="header-right">
+        <span class="counter" id="counter"></span>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 2a7 7 0 0 1 0 14z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="card-container" id="card-container" tabindex="0" role="button" aria-label="Flashcard, tap to flip">
+        <div class="card" id="card">
+          <div class="card-face card-front">
+            <span class="category" id="cat-front"></span>
+            <span class="word" id="word"></span>
+            <span class="hint">tap to reveal</span>
+          </div>
+          <div class="card-face card-back">
+            <span class="category" id="cat-back"></span>
+            <span class="back-word" id="back-word"></span>
+            <div class="divider"></div>
+            <p class="meaning" id="meaning"></p>
+            <span class="hint">tap to flip back</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="next-btn" id="next-btn">
+        next <span class="arrow">&rarr;</span>
+      </button>
+    </main>
+
+    <footer>
+      <span class="shortcuts">space flip &middot; &rarr; next</span>
+    </footer>
+  </div>
+
+  <script>
+    const W = [
+      // ── Hiragana ──
+      {w:"あ",t:"hiragana",m:"a"},{w:"い",t:"hiragana",m:"i"},{w:"う",t:"hiragana",m:"u"},{w:"え",t:"hiragana",m:"e"},{w:"お",t:"hiragana",m:"o"},
+      {w:"か",t:"hiragana",m:"ka"},{w:"き",t:"hiragana",m:"ki"},{w:"く",t:"hiragana",m:"ku"},{w:"け",t:"hiragana",m:"ke"},{w:"こ",t:"hiragana",m:"ko"},
+      {w:"さ",t:"hiragana",m:"sa"},{w:"し",t:"hiragana",m:"shi"},{w:"す",t:"hiragana",m:"su"},{w:"せ",t:"hiragana",m:"se"},{w:"そ",t:"hiragana",m:"so"},
+      {w:"た",t:"hiragana",m:"ta"},{w:"ち",t:"hiragana",m:"chi"},{w:"つ",t:"hiragana",m:"tsu"},{w:"て",t:"hiragana",m:"te"},{w:"と",t:"hiragana",m:"to"},
+      {w:"な",t:"hiragana",m:"na"},{w:"に",t:"hiragana",m:"ni"},{w:"ぬ",t:"hiragana",m:"nu"},{w:"ね",t:"hiragana",m:"ne"},{w:"の",t:"hiragana",m:"no"},
+      {w:"は",t:"hiragana",m:"ha"},{w:"ひ",t:"hiragana",m:"hi"},{w:"ふ",t:"hiragana",m:"fu"},{w:"へ",t:"hiragana",m:"he"},{w:"ほ",t:"hiragana",m:"ho"},
+      {w:"ま",t:"hiragana",m:"ma"},{w:"み",t:"hiragana",m:"mi"},{w:"む",t:"hiragana",m:"mu"},{w:"め",t:"hiragana",m:"me"},{w:"も",t:"hiragana",m:"mo"},
+      {w:"や",t:"hiragana",m:"ya"},{w:"ゆ",t:"hiragana",m:"yu"},{w:"よ",t:"hiragana",m:"yo"},
+      {w:"ら",t:"hiragana",m:"ra"},{w:"り",t:"hiragana",m:"ri"},{w:"る",t:"hiragana",m:"ru"},{w:"れ",t:"hiragana",m:"re"},{w:"ろ",t:"hiragana",m:"ro"},
+      {w:"わ",t:"hiragana",m:"wa"},{w:"を",t:"hiragana",m:"wo"},{w:"ん",t:"hiragana",m:"n"},
+      // ── Katakana ──
+      {w:"ア",t:"katakana",m:"a"},{w:"イ",t:"katakana",m:"i"},{w:"ウ",t:"katakana",m:"u"},{w:"エ",t:"katakana",m:"e"},{w:"オ",t:"katakana",m:"o"},
+      {w:"カ",t:"katakana",m:"ka"},{w:"キ",t:"katakana",m:"ki"},{w:"ク",t:"katakana",m:"ku"},{w:"ケ",t:"katakana",m:"ke"},{w:"コ",t:"katakana",m:"ko"},
+      {w:"サ",t:"katakana",m:"sa"},{w:"シ",t:"katakana",m:"shi"},{w:"ス",t:"katakana",m:"su"},{w:"セ",t:"katakana",m:"se"},{w:"ソ",t:"katakana",m:"so"},
+      {w:"タ",t:"katakana",m:"ta"},{w:"チ",t:"katakana",m:"chi"},{w:"ツ",t:"katakana",m:"tsu"},{w:"テ",t:"katakana",m:"te"},{w:"ト",t:"katakana",m:"to"},
+      {w:"ナ",t:"katakana",m:"na"},{w:"ニ",t:"katakana",m:"ni"},{w:"ヌ",t:"katakana",m:"nu"},{w:"ネ",t:"katakana",m:"ne"},{w:"ノ",t:"katakana",m:"no"},
+      {w:"ハ",t:"katakana",m:"ha"},{w:"ヒ",t:"katakana",m:"hi"},{w:"フ",t:"katakana",m:"fu"},{w:"ヘ",t:"katakana",m:"he"},{w:"ホ",t:"katakana",m:"ho"},
+      {w:"マ",t:"katakana",m:"ma"},{w:"ミ",t:"katakana",m:"mi"},{w:"ム",t:"katakana",m:"mu"},{w:"メ",t:"katakana",m:"me"},{w:"モ",t:"katakana",m:"mo"},
+      {w:"ヤ",t:"katakana",m:"ya"},{w:"ユ",t:"katakana",m:"yu"},{w:"ヨ",t:"katakana",m:"yo"},
+      {w:"ラ",t:"katakana",m:"ra"},{w:"リ",t:"katakana",m:"ri"},{w:"ル",t:"katakana",m:"ru"},{w:"レ",t:"katakana",m:"re"},{w:"ロ",t:"katakana",m:"ro"},
+      {w:"ワ",t:"katakana",m:"wa"},{w:"ヲ",t:"katakana",m:"wo"},{w:"ン",t:"katakana",m:"n"},
+    ];
+
+    // ── State ──
+    let queue = [];
+    let current = null;
+    let flipped = false;
+    let seen = new Set(JSON.parse(localStorage.getItem('kana-seen') || '[]'));
+    let busy = false;
+
+    const $ = id => document.getElementById(id);
+
+    // ── Shuffle (Fisher-Yates) ──
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function fillQueue() {
+      queue = shuffle([...Array(W.length).keys()]);
+    }
+
+    function advanceWord() {
+      if (queue.length === 0) fillQueue();
+      const idx = queue.pop();
+      current = W[idx];
+      seen.add(current.w);
+      try { localStorage.setItem('kana-seen', JSON.stringify([...seen])); } catch {}
+    }
+
+    function render() {
+      $('word').textContent = current.w;
+      $('cat-front').textContent = current.t;
+      $('cat-back').textContent = current.t;
+      $('back-word').textContent = current.w;
+      $('meaning').textContent = current.m;
+      $('counter').textContent = `${seen.size} / ${W.length}`;
+    }
+
+    // ── Flip ──
+    function flip() {
+      if (busy) return;
+      flipped = !flipped;
+      $('card').classList.toggle('flipped', flipped);
+    }
+
+    // ── Next ──
+    function goNext() {
+      if (busy) return;
+      busy = true;
+
+      const container = $('card-container');
+      container.classList.add('out');
+
+      setTimeout(() => {
+        advanceWord();
+        render();
+        flipped = false;
+        $('card').classList.remove('flipped');
+
+        requestAnimationFrame(() => {
+          container.classList.remove('out');
+          setTimeout(() => { busy = false; }, 300);
+        });
+      }, 220);
+    }
+
+    // ── Theme ──
+    function initTheme() {
+      const saved = localStorage.getItem('kana-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme');
+
+      if (current === 'dark') {
+        root.setAttribute('data-theme', 'light');
+        localStorage.setItem('kana-theme', 'light');
+      } else if (current === 'light') {
+        root.setAttribute('data-theme', 'dark');
+        localStorage.setItem('kana-theme', 'dark');
+      } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const next = prefersDark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('kana-theme', next);
+      }
+    }
+
+    // ── Events ──
+    function init() {
+      initTheme();
+      fillQueue();
+      advanceWord();
+      render();
+
+      $('card-container').addEventListener('click', flip);
+      $('next-btn').addEventListener('click', goNext);
+      $('theme-toggle').addEventListener('click', toggleTheme);
+
+      // Keyboard
+      document.addEventListener('keydown', e => {
+        if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+          e.preventDefault();
+          flip();
+        } else if (e.code === 'ArrowRight' || e.code === 'Enter') {
+          e.preventDefault();
+          goNext();
+        }
+      });
+
+      // Swipe
+      let tx = 0, ty = 0;
+      const card = $('card-container');
+      card.addEventListener('touchstart', e => {
+        tx = e.touches[0].clientX;
+        ty = e.touches[0].clientY;
+      }, { passive: true });
+
+      card.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - tx;
+        const dy = e.changedTouches[0].clientY - ty;
+        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          goNext();
+        }
+      }, { passive: true });
+    }
+
+    init();
+  </script>
+</body>
+</html>
