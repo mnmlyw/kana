@@ -131,6 +131,41 @@
 
     .theme-toggle:hover { color: var(--text); }
 
+    /* ── Kana Switch ── */
+    .kana-switch {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .kana-switch button {
+      appearance: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-family: 'Shippori Mincho B1', serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      padding: 4px 12px;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      line-height: 1.3;
+    }
+
+    .kana-switch button.active {
+      background: var(--bg-card);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .kana-switch button:not(.active):hover {
+      color: var(--text);
+    }
+
     /* ── Main ── */
     main {
       flex: 1;
@@ -343,6 +378,11 @@
     <header>
       <span class="title">kana</span>
       <div class="header-right">
+        <div class="kana-switch" id="kana-switch">
+          <button data-mode="both" class="active">両</button>
+          <button data-mode="hiragana">あ</button>
+          <button data-mode="katakana">ア</button>
+        </div>
         <span class="counter" id="counter"></span>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -413,6 +453,7 @@
     let flipped = false;
     let seen = new Set(JSON.parse(localStorage.getItem('kana-seen') || '[]'));
     let busy = false;
+    let mode = localStorage.getItem('kana-mode') || 'both';
 
     const $ = id => document.getElementById(id);
 
@@ -425,8 +466,12 @@
       return a;
     }
 
+    function filtered() {
+      return W.map((w, i) => [w, i]).filter(([w]) => mode === 'both' || w.t === mode);
+    }
+
     function fillQueue() {
-      queue = shuffle([...Array(W.length).keys()]);
+      queue = shuffle(filtered().map(([, i]) => i));
     }
 
     function advanceWord() {
@@ -443,7 +488,19 @@
       $('cat-back').textContent = current.t;
       $('back-word').textContent = current.w;
       $('meaning').textContent = current.m;
-      $('counter').textContent = `${seen.size} / ${W.length}`;
+      const total = filtered().length;
+      const seenInMode = filtered().filter(([w]) => seen.has(w.w)).length;
+      $('counter').textContent = `${seenInMode} / ${total}`;
+    }
+
+    function setMode(m) {
+      mode = m;
+      localStorage.setItem('kana-mode', mode);
+      document.querySelectorAll('.kana-switch button').forEach(b =>
+        b.classList.toggle('active', b.dataset.mode === mode)
+      );
+      fillQueue();
+      goNext();
     }
 
     // ── Flip ──
@@ -501,6 +558,12 @@
     // ── Events ──
     function init() {
       initTheme();
+
+      // Restore saved mode
+      document.querySelectorAll('.kana-switch button').forEach(b =>
+        b.classList.toggle('active', b.dataset.mode === mode)
+      );
+
       fillQueue();
       advanceWord();
       render();
@@ -508,6 +571,11 @@
       $('card-container').addEventListener('click', flip);
       $('next-btn').addEventListener('click', goNext);
       $('theme-toggle').addEventListener('click', toggleTheme);
+
+      $('kana-switch').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-mode]');
+        if (btn && btn.dataset.mode !== mode) setMode(btn.dataset.mode);
+      });
 
       // Keyboard
       document.addEventListener('keydown', e => {
